@@ -6,17 +6,13 @@ public class Player : MonoBehaviour
     InputSystem_Actions action;
 
     [SerializeField]
+    GameCamera _GameCamera;
+
+    [SerializeField]
     float MoveSpeed;
 
     [SerializeField]
-    Transform MainCamera;
-
-    [SerializeField]
-    Vector2 InputVec = new Vector2();
-
-    [SerializeField]
-    Vector2 LookVec = new Vector2();
-
+    Vector2 InputVec;
     void Awake()
     {
         action = new InputSystem_Actions();
@@ -27,14 +23,12 @@ public class Player : MonoBehaviour
         action.Enable();
         action.Player.Move.performed += OnMoving;
         action.Player.Move.canceled += MoveCancel;
-        action.Player.Look.performed += OnLookCamera;
     }
 
     void OnDisable()
     {
         action.Player.Move.performed -= OnMoving;
         action.Player.Move.canceled -= MoveCancel;
-        action.Player.Look.performed -= OnLookCamera;
         action.Disable();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -46,16 +40,22 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 InputDir = new Vector3(InputVec.x,0.0f,InputVec.y);
+        var CameraDir = _GameCamera.transform.forward + _GameCamera.transform.right;
 
-        float Dir = Mathf.Atan2(InputVec.x, InputVec.y);
+        Debug.Log(CameraDir);
+
+        CameraDir.y = 0f;
+
+        Vector3 InputDir = new Vector3(InputVec.x * CameraDir.x,0.0f,InputVec.y * CameraDir.z);
+
+        float Dir = Mathf.Atan2(InputDir.x, InputDir.z);
 
         Quaternion AngleDir = Quaternion.Euler(0.0f,Dir * Mathf.Rad2Deg,0.0f);
 
         transform.position = transform.position + (InputDir.normalized * MoveSpeed) * Time.deltaTime;
 
-        if(InputVec!=Vector2.zero)
-        transform.rotation = AngleDir;
+        //if(InputVec!=Vector2.zero)
+        //transform.rotation = AngleDir;
     }
     void OnMoving(InputAction.CallbackContext cont)
     {
@@ -70,14 +70,6 @@ public class Player : MonoBehaviour
         if (cont.canceled)
         {
             InputVec = Vector2.zero;
-        }
-    }
-
-    void OnLookCamera(InputAction.CallbackContext cont)
-    {
-        if(cont.performed)
-        {
-            LookVec = cont.ReadValue<Vector2>();
         }
     }
 }
