@@ -1,9 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Video;
 
 public class Player : MonoBehaviour
 {
     InputSystem_Actions action;
+
+    [SerializeField]
+    GameObject FirePrefab;
 
     [SerializeField]
     float accel;
@@ -18,6 +22,12 @@ public class Player : MonoBehaviour
     float JumpSpeed;
 
     [SerializeField]
+    float RotateSpeed;
+
+    [SerializeField]
+    float FireSpeed;
+
+    [SerializeField]
     float groundNormalYMin;
 
     [SerializeField]
@@ -26,7 +36,20 @@ public class Player : MonoBehaviour
     [SerializeField]
     float airDamping = 0.5f;
 
+    [SerializeField]
+    float hp = 3;
+
+    [SerializeField]
+    float invincibleTimeMax = 0.5f;
+
+    [SerializeField]
+    float knockbackSpeed = 5;
+
+    float invincibleTime;
+
     Vector2 InputVec;
+
+    Vector3 offset = new Vector3(0.0f,0.0f,1.0f);
 
     Rigidbody rb;
 
@@ -50,6 +73,7 @@ public class Player : MonoBehaviour
         action.Player.Jump.started += OnJump;
         action.Player.Sprint.performed += OnRun;
         action.Player.Sprint.canceled += OnRunCancel;
+        action.Player.Attack.started += OnAttack;
     }
 
     void OnDisable()
@@ -59,6 +83,7 @@ public class Player : MonoBehaviour
         action.Player.Jump.started -= OnJump;
         action.Player.Sprint.performed -= OnRun;
         action.Player.Sprint.canceled -= OnRunCancel;
+        action.Player.Attack.started -= OnAttack;
         action.Disable();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -83,14 +108,13 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (invincibleTime > 0)
+        {
+            invincibleTime -= Time.deltaTime;
+        }
         Vector3 InputDir = _GameCamera.transform.right * InputVec.x + _GameCamera.transform.forward * InputVec.y;
 
         InputDir.y = 0;
-
-        float Dir = Mathf.Atan2(InputDir.x, InputDir.z);
-
-        Quaternion AngleDir = Quaternion.Euler(0.0f,Dir * Mathf.Rad2Deg,0.0f);
-
         if(isAccel)
         {
             transform.position = transform.position + (InputDir.normalized * accel) * Time.deltaTime;
@@ -102,8 +126,8 @@ public class Player : MonoBehaviour
 
         AnimWalk();
 
-        if (InputVec != Vector2.zero)
-            transform.rotation = AngleDir;
+        if (InputVec != Vector2.zero&&transform.forward!=InputDir)
+            transform.forward = Vector3.Slerp(transform.forward,InputDir,RotateSpeed * Time.deltaTime);
     }
     void OnMoving(InputAction.CallbackContext cont)
     {
@@ -162,6 +186,20 @@ public class Player : MonoBehaviour
         }
     }
 
+    void OnAttack(InputAction.CallbackContext cont)
+    {
+        if(cont.started)
+        {
+            var pos = transform.position + transform.forward;
+
+            GameObject obj = Instantiate(FirePrefab, pos, Quaternion.identity);
+
+            var obj_rb = obj.GetComponent<Rigidbody>();
+
+            obj_rb.linearVelocity = transform.forward * FireSpeed;
+        }
+    }
+
     void OnCollisionStay(Collision col)
     {
         foreach(var contact in col.contacts)
@@ -170,6 +208,22 @@ public class Player : MonoBehaviour
             {
                 isGrounded = true;
             }
+        }
+        var attackObj = col.gameObject.GetComponent<AttackObject>();
+
+        if (attackObj != null && invincibleTime <= 0)
+        {
+            hp -= attackObj.power;
+            invincibleTime = invincibleTimeMax;
+            if (hp <= 0)
+            {
+                Destroy(gameObject);
+            }
+
+            var dir = transform.position - col.transform.position;
+            dir.y = 0;
+            var knockbackVec = dir.normalized * knockbackSpeed;
+            rb.AddForce(knockbackVec,ForceMode.VelocityChange);
         }
     }
 }

@@ -20569,7 +20569,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d09045277efc58d40bb9a38cd66f96dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  moveSpeed: 5
+  moveSpeed: 3
+  rotateSpeed: 3
+  hp: 3
 --- !u!136 &1459111542
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -21240,10 +21242,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 268a4e14b26054345943387f215a03fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  FirePrefab: {fileID: 4818970324401746577, guid: 59c516dceb031b64ba6cb9cd59bb41f0, type: 3}
   accel: 10
   _GameCamera: {fileID: 330585548}
   MoveSpeed: 4
   JumpSpeed: 20
+  RotateSpeed: 6
+  FireSpeed: 10
   groundNormalYMin: 0
   groundDamping: 0
   airDamping: 0.5
@@ -27695,7 +27700,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d09045277efc58d40bb9a38cd66f96dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  moveSpeed: 5
+  moveSpeed: 3
+  rotateSpeed: 3
+  hp: 3
 --- !u!1001 &2712876435358596489
 PrefabInstance:
   m_ObjectHideFlags: 0
