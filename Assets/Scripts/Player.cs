@@ -3,6 +3,7 @@ using R3.Triggers;
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -228,6 +229,14 @@ public class Player : MonoBehaviour
             var obj_rb = obj.GetComponent<Rigidbody>();
 
             obj_rb.linearVelocity = transform.forward * FireSpeed;
+        }
+    }
+
+    void OnCollisionEnter(Collision col)
+    {
+        if(col.gameObject.CompareTag("Flag"))
+        {
+            SceneManager.LoadScene("BossStage");
         }
     }
 
