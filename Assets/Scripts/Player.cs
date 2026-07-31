@@ -1,9 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Video;
+using System;
 
 public class Player : MonoBehaviour
 {
+    Action<float, float> OnUpdateHp;
+
+    Action<float, float> OnUpdateMp;
+
     InputSystem_Actions action;
 
     [SerializeField]
@@ -39,6 +43,13 @@ public class Player : MonoBehaviour
     [SerializeField]
     float hp = 3;
 
+    const float MaxHP = 3;
+
+    [SerializeField]
+    int mp = 7;
+
+    const int MaxMP = 7;
+
     [SerializeField]
     float invincibleTimeMax = 0.5f;
 
@@ -58,6 +69,30 @@ public class Player : MonoBehaviour
     bool isGrounded;
 
     bool isAccel;
+
+    public float MaxHp => MaxHP;
+
+    public int MaxMp => MaxMP;
+
+    public float CurrentHP
+    {
+        get => hp;
+        set
+        {
+            hp = Mathf.Clamp(value, 0, MaxHP);
+            OnUpdateHp(hp,MaxHP);
+        }
+    }
+
+    public int CurrentMP
+    {
+        get => mp;
+        set
+        {
+            mp = Mathf.Clamp(value, 0,MaxMP);
+            OnUpdateMp(mp,MaxMP);
+        }
+    }
     void Awake()
     {
         action = new InputSystem_Actions();
@@ -86,12 +121,6 @@ public class Player : MonoBehaviour
         action.Player.Attack.started -= OnAttack;
         action.Disable();
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
     void FixedUpdate()
     {
         if(isGrounded)
@@ -117,11 +146,11 @@ public class Player : MonoBehaviour
         InputDir.y = 0;
         if(isAccel)
         {
-            transform.position = transform.position + (InputDir.normalized * accel) * Time.deltaTime;
+            rb.linearVelocity = InputDir.normalized * accel;
         }
         else
         {
-            transform.position = transform.position + (InputDir.normalized * MoveSpeed) * Time.deltaTime;
+            rb.linearVelocity = InputDir.normalized * MoveSpeed;
         }
 
         AnimWalk();
@@ -190,6 +219,9 @@ public class Player : MonoBehaviour
     {
         if(cont.started)
         {
+            if (mp<=0) return;
+            CurrentMP -= 1;
+
             var pos = transform.position + transform.forward;
 
             GameObject obj = Instantiate(FirePrefab, pos, Quaternion.identity);
@@ -213,7 +245,7 @@ public class Player : MonoBehaviour
 
         if (attackObj != null && invincibleTime <= 0)
         {
-            hp -= attackObj.power;
+            CurrentHP -= attackObj.power;
             invincibleTime = invincibleTimeMax;
             if (hp <= 0)
             {
@@ -225,5 +257,15 @@ public class Player : MonoBehaviour
             var knockbackVec = dir.normalized * knockbackSpeed;
             rb.AddForce(knockbackVec,ForceMode.VelocityChange);
         }
+    }
+
+    public void OnHPMethod(Action<float,float> hpmethod)
+    {
+        OnUpdateHp = hpmethod;
+    }
+
+    public void OnMPMethod(Action<float,float> mpmethod)
+    {
+        OnUpdateMp = mpmethod;
     }
 }

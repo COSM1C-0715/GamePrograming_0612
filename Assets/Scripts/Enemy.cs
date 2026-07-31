@@ -1,14 +1,17 @@
 using Cysharp.Threading.Tasks.Triggers;
+using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    Action<float, float> OnUpdateHp;
     [SerializeField]
     float moveSpeed = 3;
     [SerializeField]
     float rotateSpeed = 3;
     [SerializeField]
-    int hp;
+    float hp;
+    const float MaxHp = 3;
     [SerializeField]
     float invincibleTimeMax = 0.5f;
     [SerializeField]
@@ -20,6 +23,16 @@ public class Enemy : MonoBehaviour
     Animator anim;
 
     public Collider playerCollider {  get; set; }
+
+    public float CurrentHp
+    {
+        get => hp;
+        set
+        {
+            hp = Mathf.Clamp(value, 0, MaxHp);
+            OnUpdateHp(value,MaxHp);
+        }
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -56,13 +69,18 @@ public class Enemy : MonoBehaviour
             anim.SetFloat("MoveSpeed",subVec.magnitude);
         }
     }
+
+    public void OnHPMethod(Action<float, float> hpmethod)
+    {
+        OnUpdateHp = hpmethod;
+    }
     void OnCollisionStay(Collision col)
     {
         var attackObj = col.gameObject.GetComponent<AttackObject>();
 
         if(attackObj!=null&&invincibleTime <= 0)
         {
-            hp -= attackObj.power;
+            CurrentHp -= attackObj.power;
             invincibleTime = invincibleTimeMax;
             if(hp <= 0)
             {
