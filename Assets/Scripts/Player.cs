@@ -1,6 +1,8 @@
+using R3;
+using R3.Triggers;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System;
 
 public class Player : MonoBehaviour
 {
@@ -40,13 +42,13 @@ public class Player : MonoBehaviour
     [SerializeField]
     float airDamping = 0.5f;
 
-    [SerializeField]
-    float hp = 3;
+    ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHP);
+
+    ReactiveProperty<float> mp = new ReactiveProperty<float>(MaxMP);
+
+    ReactiveProperty<float> MpChargeTime = new ReactiveProperty<float>(5);
 
     const float MaxHP = 3;
-
-    [SerializeField]
-    int mp = 7;
 
     const int MaxMP = 7;
 
@@ -73,28 +75,24 @@ public class Player : MonoBehaviour
     public float MaxHp => MaxHP;
 
     public int MaxMp => MaxMP;
-
-    public float CurrentHP
-    {
-        get => hp;
-        set
-        {
-            hp = Mathf.Clamp(value, 0, MaxHP);
-            OnUpdateHp(hp,MaxHP);
-        }
-    }
-
-    public int CurrentMP
-    {
-        get => mp;
-        set
-        {
-            mp = Mathf.Clamp(value, 0,MaxMP);
-            OnUpdateMp(mp,MaxMP);
-        }
-    }
     void Awake()
     {
+        hp.Subscribe(Currenthp =>
+        {
+            hp.Value = Mathf.Clamp(Currenthp, 0, MaxHP);
+            OnUpdateHp(Currenthp, MaxHP);
+        });
+        mp.Subscribe(Currentmp =>
+        {
+            hp.Value = Mathf.Clamp(Currentmp, 0, MaxHP);
+            OnUpdateMp(Currentmp, MaxHP);
+        });
+        MpChargeTime.Subscribe(CurrentTime =>
+        {
+            MpChargeTime.Value = Mathf.Clamp(CurrentTime, 0, 5);
+            if (CurrentTime <= 0)
+                mp.Value++;
+        });
         action = new InputSystem_Actions();
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
@@ -123,6 +121,7 @@ public class Player : MonoBehaviour
     }
     void FixedUpdate()
     {
+        MpChargeTime.Value -= Time.deltaTime;
         if(isGrounded)
         {
             rb.linearDamping = groundDamping;
@@ -219,8 +218,8 @@ public class Player : MonoBehaviour
     {
         if(cont.started)
         {
-            if (mp<=0) return;
-            CurrentMP -= 1;
+            if (mp.Value<=0) return;
+            mp.Value -= 1;
 
             var pos = transform.position + transform.forward;
 
@@ -245,9 +244,9 @@ public class Player : MonoBehaviour
 
         if (attackObj != null && invincibleTime <= 0)
         {
-            CurrentHP -= attackObj.power;
+            hp.Value -= attackObj.power;
             invincibleTime = invincibleTimeMax;
-            if (hp <= 0)
+            if (hp.Value <= 0)
             {
                 Destroy(gameObject);
             }

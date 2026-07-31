@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks.Triggers;
+using R3;
 using System;
 using UnityEngine;
 
@@ -9,8 +10,9 @@ public class Enemy : MonoBehaviour
     float moveSpeed = 3;
     [SerializeField]
     float rotateSpeed = 3;
-    [SerializeField]
-    float hp;
+
+    ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHp);
+
     const float MaxHp = 3;
     [SerializeField]
     float invincibleTimeMax = 0.5f;
@@ -23,19 +25,14 @@ public class Enemy : MonoBehaviour
     Animator anim;
 
     public Collider playerCollider {  get; set; }
-
-    public float CurrentHp
-    {
-        get => hp;
-        set
-        {
-            hp = Mathf.Clamp(value, 0, MaxHp);
-            OnUpdateHp(value,MaxHp);
-        }
-    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        hp.Subscribe(Currenthp =>
+        {
+            hp.Value = Mathf.Clamp(Currenthp, 0, MaxHp);
+            OnUpdateHp(Currenthp, MaxHp);
+        });
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
     }
@@ -80,9 +77,9 @@ public class Enemy : MonoBehaviour
 
         if(attackObj!=null&&invincibleTime <= 0)
         {
-            CurrentHp -= attackObj.power;
+            hp.Value -= attackObj.power;
             invincibleTime = invincibleTimeMax;
-            if(hp <= 0)
+            if(hp.Value <= 0)
             {
                 Destroy(gameObject);
             }
