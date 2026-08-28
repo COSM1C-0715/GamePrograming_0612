@@ -1,16 +1,11 @@
 using R3;
 using R3.Triggers;
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    Action<float, float> OnUpdateHp;
-
-    Action<float, float> OnUpdateMp;
-
     InputSystem_Actions action;
 
     [SerializeField]
@@ -43,15 +38,15 @@ public class Player : MonoBehaviour
     [SerializeField]
     float airDamping = 0.5f;
 
-    ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHP);
+    public ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHp);
 
-    ReactiveProperty<float> mp = new ReactiveProperty<float>(MaxMP);
+    public ReactiveProperty<float> mp = new ReactiveProperty<float>(MaxMp);
 
-    ReactiveProperty<float> MpChargeTime = new ReactiveProperty<float>(5);
+    public ReactiveProperty<float> MpChargeTime = new ReactiveProperty<float>(5);
 
-    const float MaxHP = 3;
+    const float MaxHp = 3;
 
-    const int MaxMP = 7;
+    const int MaxMp = 7;
 
     [SerializeField]
     float invincibleTimeMax = 0.5f;
@@ -73,27 +68,11 @@ public class Player : MonoBehaviour
 
     bool isAccel;
 
-    public float MaxHp => MaxHP;
+    public float MaxHP => MaxHp;
 
-    public int MaxMp => MaxMP;
+    public int MaxMP => MaxMp;
     void Awake()
     {
-        hp.Subscribe(Currenthp =>
-        {
-            hp.Value = Mathf.Clamp(Currenthp, 0, MaxHP);
-            OnUpdateHp(Currenthp, MaxHP);
-        });
-        mp.Subscribe(Currentmp =>
-        {
-            hp.Value = Mathf.Clamp(Currentmp, 0, MaxHP);
-            OnUpdateMp(Currentmp, MaxHP);
-        });
-        MpChargeTime.Subscribe(CurrentTime =>
-        {
-            MpChargeTime.Value = Mathf.Clamp(CurrentTime, 0, 5);
-            if (CurrentTime <= 0)
-                mp.Value++;
-        });
         action = new InputSystem_Actions();
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
@@ -265,15 +244,5 @@ public class Player : MonoBehaviour
             var knockbackVec = dir.normalized * knockbackSpeed;
             rb.AddForce(knockbackVec,ForceMode.VelocityChange);
         }
-    }
-
-    public void OnHPMethod(Action<float,float> hpmethod)
-    {
-        OnUpdateHp = hpmethod;
-    }
-
-    public void OnMPMethod(Action<float,float> mpmethod)
-    {
-        OnUpdateMp = mpmethod;
     }
 }

@@ -5,7 +5,7 @@ using TMPro;
 public class UIManagement : MonoBehaviour
 {
     [SerializeField]
-    Enemy enemy;
+    Enemy[] enemies;
 
     [SerializeField]
     Player player;
@@ -23,7 +23,7 @@ public class UIManagement : MonoBehaviour
     TextMeshProUGUI P_MPtext;
 
     [SerializeField]
-    GameObject E_HPImage;
+    GameObject[] E_HPImage;
 
     [SerializeField]
     Image E_Gauge;
@@ -34,57 +34,62 @@ public class UIManagement : MonoBehaviour
     RectTransform E_GaugePos;
 
     bool Image_active = false;
-    void Awake()
-    {
-        E_GaugePos = E_HPImage.GetComponent<RectTransform>();
-        player.OnHPMethod(UpdateHP);
-        player.OnMPMethod(UpdateMP);
-        enemy.OnHPMethod(E_UpdateHP);
-    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         P_HPImage.fillAmount = 1;
-        P_HPtext.text = player.MaxHp + "/" + player.MaxHp;
+        P_HPtext.text = player.MaxHP + "/" + player.MaxHP;
         P_MPImage.fillAmount = 1;
-        P_MPtext.text = player.MaxMp + "/" + player.MaxMp;
+        P_MPtext.text = player.MaxMP + "/" + player.MaxMP;
     }
-
-    void FixedUpdate()
-    {
-        
-    }
-    void UpdateHP(float current,float max)
+    public void UpdateHP(float current,float max)
     {
         P_HPImage.fillAmount = current / max;
         P_HPtext.text = current + "/" + max;
     }
 
-    void UpdateMP(float current,float max)
+    public void UpdateMP(float current,float max)
     {
         P_MPImage.fillAmount = current / max;
         P_MPtext.text = current + "/" + max;
     }
-    void E_UpdateHP(float current, float max)
+    public void E_UpdateHP(float current, float max,Enemy enemy)
     {
-        StartCoroutine(ImageAvtive());
+        StartCoroutine(ImageActive(enemy));
         E_Gauge.fillAmount = current / max;
     }
 
-    IEnumerator ImageAvtive()
+    IEnumerator ImageActive(Enemy enemy)
     {
         if (Image_active) yield break;
         Image_active = true;
-        E_HPImage.SetActive(true);
+        
         while(ActiveTime > 0)
         {
             ActiveTime -= Time.deltaTime;
 
             Vector3 UIPos = Camera.main.WorldToScreenPoint(enemy.transform.position);
 
+            E_GaugePos = ActiveImage();
+
             E_GaugePos.position = UIPos;
         }
         ActiveTime = 5.0f;
         Image_active = false;
+    }
+
+    RectTransform ActiveImage()
+    {
+        RectTransform activeimage = new RectTransform();
+        for (int i = 0; i < E_HPImage.Length; i++)
+        {
+            if (!E_HPImage[i].activeSelf)
+            {
+                E_HPImage[i].SetActive(true);
+                activeimage = E_HPImage[i].GetComponent<RectTransform>();
+                break;
+            }
+        }
+        return activeimage;
     }
 }

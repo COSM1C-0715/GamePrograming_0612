@@ -5,13 +5,12 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    Action<float, float> OnUpdateHp;
     [SerializeField]
     float moveSpeed = 3;
     [SerializeField]
     float rotateSpeed = 3;
 
-    ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHp);
+    public ReactiveProperty<float> hp = new ReactiveProperty<float>(MaxHp);
 
     const float MaxHp = 3;
     [SerializeField]
@@ -24,15 +23,12 @@ public class Enemy : MonoBehaviour
 
     Animator anim;
 
+    public float MaxHP => MaxHp;
+
     public Collider playerCollider {  get; set; }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        hp.Subscribe(Currenthp =>
-        {
-            hp.Value = Mathf.Clamp(Currenthp, 0, MaxHp);
-            OnUpdateHp(Currenthp, MaxHp);
-        });
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
     }
@@ -65,11 +61,6 @@ public class Enemy : MonoBehaviour
             transform.forward = Vector3.Slerp(forward,rotatetarget,rotateSpeed * Time.deltaTime);
             anim.SetFloat("MoveSpeed",subVec.magnitude);
         }
-    }
-
-    public void OnHPMethod(Action<float, float> hpmethod)
-    {
-        OnUpdateHp = hpmethod;
     }
     void OnCollisionStay(Collision col)
     {
