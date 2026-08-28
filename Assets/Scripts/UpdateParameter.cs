@@ -13,6 +13,10 @@ public class UpdateParameter : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        uimanager.UpdateHP(player.hp.CurrentValue,player.MaxHP);
+
+        uimanager.UpdateMP(player.mp.CurrentValue,player.MaxMP);
+
         player.hp.Subscribe(
             Currenthp =>
             {
@@ -34,10 +38,11 @@ public class UpdateParameter : MonoBehaviour
             });
         for (int i = 0;i < enemy.Length;i++)
         {
+            Enemy l_enemy = enemy[i];
             enemy[i].hp.Subscribe(
             CurrentHP =>
             {
-                uimanager.E_UpdateHP(CurrentHP, enemy[i].MaxHP, enemy[i]);
+                uimanager.E_UpdateHP(CurrentHP, l_enemy.MaxHP, l_enemy);
             });
         }
     }

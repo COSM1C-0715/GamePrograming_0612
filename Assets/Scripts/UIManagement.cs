@@ -5,12 +5,6 @@ using TMPro;
 public class UIManagement : MonoBehaviour
 {
     [SerializeField]
-    Enemy[] enemies;
-
-    [SerializeField]
-    Player player;
-
-    [SerializeField]
     Image P_HPImage;
 
     [SerializeField]
@@ -34,14 +28,6 @@ public class UIManagement : MonoBehaviour
     RectTransform E_GaugePos;
 
     bool Image_active = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        P_HPImage.fillAmount = 1;
-        P_HPtext.text = player.MaxHP + "/" + player.MaxHP;
-        P_MPImage.fillAmount = 1;
-        P_MPtext.text = player.MaxMP + "/" + player.MaxMP;
-    }
     public void UpdateHP(float current,float max)
     {
         P_HPImage.fillAmount = current / max;
@@ -63,24 +49,25 @@ public class UIManagement : MonoBehaviour
     {
         if (Image_active) yield break;
         Image_active = true;
-        
-        while(ActiveTime > 0)
+
+        E_GaugePos = ActiveImage();
+
+        while (ActiveTime > 0)
         {
             ActiveTime -= Time.deltaTime;
 
             Vector3 UIPos = Camera.main.WorldToScreenPoint(enemy.transform.position);
 
-            E_GaugePos = ActiveImage();
-
             E_GaugePos.position = UIPos;
         }
         ActiveTime = 5.0f;
+        E_GaugePos.gameObject.SetActive(false);
         Image_active = false;
     }
 
     RectTransform ActiveImage()
     {
-        RectTransform activeimage = new RectTransform();
+        RectTransform activeimage = null;
         for (int i = 0; i < E_HPImage.Length; i++)
         {
             if (!E_HPImage[i].activeSelf)
